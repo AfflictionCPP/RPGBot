@@ -166,57 +166,13 @@ bool IRCconn::sendData(char *msg)
 
 void IRCconn::sendPong(char *buf)
 {
-	// Get the reply address then loop through and find the location of PING
-	char *toSearch = "PING ";
+	// Turn PING into PONG
+	buf[1] = 79;
 
-	// Search through each char in buf
-	for (int i = 0; i < strlen(buf); i++)
-	{
-		// Search toSearch if the active char is equal to the first search item
-		if(buf[i] == toSearch[0])
-		{
-			bool found = true;
-			// Search the search field char array
-			for(int z = 1; z < 4; z++)
-				if(buf[i + z] != toSearch[z])
-					found = false;
-
-			// Return true if found
-			if(found)
-			{
-				// Count the number of chars
-				int count = 0;
-				for(int z = (i + strlen(toSearch)); z < strlen(buf); z++)
-					count++;
-
-				// Create a new char array
-				char *returnHost = new char[count + 5];
-				returnHost[0] = 'P';
-				returnHost[1] = 'O';
-				returnHost[2] = 'N';
-				returnHost[3] = 'G';
-				returnHost[4] = ' ';
-
-				count = 0;
-
-				// Set the hostname data
-				for(int z = (i + strlen(toSearch)); z < strlen(buf); z++)
-				{
-					returnHost[count + 5] = buf[z];
-					count++;
-				}
-				returnHost[count + 5] = '\0';
-
-				// Send the Pong
-				if(sendData(returnHost))
-					cout << timeNow() << " Ping Pong" << endl;
-
-				return;
-			}
-		}
-	}
+	// Send the Pong
+	if(sendData(buf))
+		cout << timeNow() << " Ping Pong" << endl;
 }
-
 
 /********************************************
 *											*

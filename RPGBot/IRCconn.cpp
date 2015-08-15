@@ -96,7 +96,7 @@ void IRCconn::start()
 		msgHandel(buf);
 
 		// If Ping recieved
-		if(charSearch(buf, "PING"))	// Must reply to the ping to avoid connection closure
+		if(charSearch(buf, "PING :"))	// Must reply to the ping to avoid connection closure
 			sendPong(buf);
 
 		// Break if the connection is closed

@@ -3,23 +3,23 @@
 
 class IRCconn
 {
-	public:
-		IRCconn(char *nick, char *usr);
-		virtual ~IRCconn();
+public:
+	IRCconn(char *nick, char *usr);
+	virtual ~IRCconn();
 
-		bool setup;
+	bool setup;
 
-		void start();
-		bool charSearch(char *toSearch, char *searchFor);
-	private:
-		char *port;
-		SOCKET s; //the socket descriptor
+	void start();
+	bool charSearch(char *toSearch, char *searchFor);
+private:
+	char *port;
+	SOCKET s; //the socket descriptor
 
-		char *nick;
-		char *user;
+	char *nick;
+	char *user;
 
-		char *timeNow();
-		bool sendData(char *msg);
-		void sendPong(char *buf);
-		void msgHandel(char *buf);
+	char *timeNow();
+	bool sendData(char *msg);
+	void sendPong(char *buf);
+	void msgHandel(char *buf);
 };

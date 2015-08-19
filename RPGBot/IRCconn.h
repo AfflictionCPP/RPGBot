@@ -4,22 +4,19 @@
 class IRCconn
 {
 public:
-	IRCconn(char *nick, char *usr);
-	virtual ~IRCconn();
-
 	bool setup;
 
+	IRCconn(char* nick, char* usr);
+	~IRCconn();
 	void start();
-	bool charSearch(char *toSearch, char *searchFor);
 private:
-	char *port;
+	char* port;
 	SOCKET s; //the socket descriptor
+	char* nick;
+	char* user;
 
-	char *nick;
-	char *user;
-
-	char *timeNow();
-	bool sendData(char *msg);
-	void sendPong(char *buf);
-	void msgHandel(char *buf);
+	char* timeNow();
+	void checkPing(char* buf);
+	void msgHandel(char* buf);
+	bool sendData(char* msg);
 };

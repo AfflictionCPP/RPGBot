@@ -1,14 +1,16 @@
 #include "IRCconn.h"
-#include <iostream>
 #include <winsock2.h>
 #include <WS2tcpip.h>
 #include <time.h>
+#include <iostream>
+#include <array>
 using namespace std;
+
 #pragma warning(disable : 4996)
 #pragma comment(lib, "Ws2_32.lib")
 #define MAXDATASIZE 100
 
-IRCconn::IRCconn(char *_nick, char *_user)
+IRCconn::IRCconn(char* _nick, char* _user)
 {
 	nick = _nick;
 	user = _user;
@@ -27,7 +29,8 @@ IRCconn::~IRCconn()
 
 void IRCconn::start()
 {
-	struct addrinfo hints, *servinfo;
+	struct addrinfo hints;
+	struct addrinfo* servinfo;
 
 	// Setup ran with no errors
 	setup = true;
@@ -82,8 +85,6 @@ void IRCconn::start()
 			sendData(user);
 			break;
 		case 5: // Join a channel
-			Sleep(1000);
-			//sendData("JOIN #SNOXD\r\n");
 			sendData("JOIN #SNOXD\r\n");
 		default:
 			break;
@@ -97,10 +98,8 @@ void IRCconn::start()
 					 // Pass buf to the message handler
 		msgHandel(buf);
 
-		// If Ping recieved
-		if (charSearch(buf, "PING :"))	// Must reply to the ping to avoid connection closure
-			
-			sendPong(buf);
+		// Check if Ping recieved
+		checkPing(buf);
 
 		// Break if the connection is closed
 		if (numbytes == 0)
@@ -114,33 +113,88 @@ void IRCconn::start()
 
 /********************************************
 *											*
-*   Function used to search received data	*
+*	  Function used to Handle commands		*
 *											*
 ********************************************/
 
-bool IRCconn::charSearch(char *toSearch, char *searchFor)
+void IRCconn::msgHandel(char* buf)
 {
-	int toLen = strlen(toSearch);
-	int forLen = strlen(searchFor);
+	char _nick[MAXDATASIZE];
+	char _user[MAXDATASIZE];
+	char _host[MAXDATASIZE];
+	char _command[MAXDATASIZE];
+	char _channel[MAXDATASIZE];
+	char _message[MAXDATASIZE];
 
-	// Search through each char in toSearch
-	for (int i = 0; i < toLen; i++)
+	if (sscanf(buf, ":%[^!]!%[^@]@%s %s %s :%[^\r][\r]", _nick, _user, _host, _command, _channel, _message) == 6)
 	{
-		// Search toSearch if the active char is equal to the first search item
-		if (searchFor[0] == toSearch[i])
-		{
-			bool found = true;
-			// Search the search field char array
-			for (int z = 1; z < forLen; z++)
-				if (toSearch[i + z] != searchFor[z])
-					found = false;
+		
+		
+		char* messageFound = NULL;
+		char* playerFound = NULL;
 
-			if (found) // Return true if found
-				return true;
-		}
+		bool playerExists = false;
+		std::string playerName[5];
+		std::string playerHost[5];
+
+		playerHost[0] = " ARRAY0 ";
+		playerHost[1] = " ARRAY1 ";
+		playerHost[3] = " ARRAY3 ";
+
+		
+
+
+
+		if (messageFound = strstr(_message, "test"))
+			{
+				//Check if host has already registered , if true , skip to else if
+				//If false , continue within nested ifs
+				int i = 0;
+				for (;i < 50; i++)
+				{
+					
+					if (_host != 0)
+					{
+						if (playerHost[i].c_str() != _host)
+							playerHost[i] = _host;
+						printf(playerHost[0].c_str());
+						printf(playerHost[1].c_str());
+						printf(playerHost[2].c_str());
+						printf(playerHost[3].c_str());
+						break;
+					
+					}
+				}
+			}
+			
+			
+		
+	
+
+	//sendData("PRIVMSG #SNOXD :Oh hi\r\n");
+
 	}
+		
+	
+}
 
-	return false;
+/********************************************
+*											*
+*	  Function used to respond to PING		*
+*											*
+********************************************/
+
+void IRCconn::checkPing(char* buf)
+{
+	if (strncmp("PING :", buf, 6) == 0)
+	{
+		// Turn PING into PONG
+		buf[1] = 'O';
+
+		// Send the Pong
+		if (sendData(buf))
+			cout << timeNow() << " Ping Pong" << endl;
+	}
 }
 
 /********************************************
@@ -149,7 +203,7 @@ bool IRCconn::charSearch(char *toSearch, char *searchFor)
 *											*
 ********************************************/
 
-bool IRCconn::sendData(char *msg)
+bool IRCconn::sendData(char* msg)
 {
 	// Send some data
 	int len = strlen(msg);
@@ -163,69 +217,18 @@ bool IRCconn::sendData(char *msg)
 
 /********************************************
 *											*
-*	  Function used to respond to PING		*
-*											*
-********************************************/
-
-void IRCconn::sendPong(char *buf)
-{
-	// Turn PING into PONG
-	buf[1] = 79;
-
-	// Send the Pong
-	if (sendData(buf))
-		cout << timeNow() << " Ping Pong" << endl;
-}
-
-/********************************************
-*											*
 *	Function used to get the current time	*
 *											*
 ********************************************/
 
-char *IRCconn::timeNow()
+char* IRCconn::timeNow()
 {
 	// Returns the current date and time
 	time_t rawtime;
-	struct tm *timeinfo;
+	struct tm* timeinfo;
 
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 
 	return asctime(timeinfo);
-}
-
-/********************************************
-*											*
-*	  Function used to Handle commands		*
-*											*
-********************************************/
-
-void IRCconn::msgHandel(char *buf)
-{
-	/*
-	* Add code to respond to commands here
-	*/
-	if (charSearch(buf, "test"))	// String of text that you want to trigger on
-	{
-		sendData("PRIVMSG #SNOXD :This is a test message\r\n");		// Send a message to the channel specified
-	}
-	if (charSearch(buf, "!join chan"))	// String of text that you want to trigger on
-	{
-		sendData("JOIN #SNOXD\r\n");		// Send a message to the channel specified
-	}
-
-	if (charSearch(buf, "!create account"))	// String of text that you want to trigger on
-	{
-		sendData("PRIVMSG #SNOXD :The account is created successfully\r\n");
-		Sleep(2000);
-		sendData("PRIVMSG #SNOXD :Use '!start game' to start your game session.\r\n");		
-	}
-
-
-
-	if (charSearch(buf, "!start game"))	// String of text that you want to trigger on
-	{
-		sendData("PRIVMSG #SNOXD :Fuck you I didn't even code 20 mins today\r\n");		// Send a message to the channel specified
-	}
 }
